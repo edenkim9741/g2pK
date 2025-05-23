@@ -12,7 +12,7 @@ def link1(inps, descriptive=False, verbose=False):
     rule = rule_id2text["13"]
     outs = deepcopy(inps)
 
-    for inp in inps:
+    for idx, inp in inps:
         out = inp
         pairs = [ ("ᆨᄋ", "ᄀ"),
                 ("ᆩᄋ", "ᄁ"),
@@ -32,7 +32,7 @@ def link1(inps, descriptive=False, verbose=False):
             out = out.replace(str1, str2)
 
         gloss(verbose, out, inp, rule)
-        outs.add(out)
+        outs.add((idx, out))
     return outs
 
 
@@ -40,7 +40,7 @@ def link2(inps, descriptive=False, verbose=False):
     rule = rule_id2text["14"]
     outs = deepcopy(inps)
 
-    for inp in inps:
+    for idx, inp in inps:
         out = inp
         pairs = [ ("ᆪᄋ", "ᆨᄊ"),
                 ("ᆬᄋ", "ᆫᄌ"),
@@ -55,7 +55,7 @@ def link2(inps, descriptive=False, verbose=False):
             out = out.replace(str1, str2)
 
         gloss(verbose, out, inp, rule)
-        outs.add(out)
+        outs.add((idx, out))
     return outs
 
 
@@ -64,7 +64,7 @@ def link3(inps, descriptive=False, verbose=False):
 
     outs = deepcopy(inps)
 
-    for inp in inps:
+    for idx, inp in inps:
         out = inp
         pairs = [ ("ᆨ ᄋ", " ᄀ"),
                 ("ᆩ ᄋ", " ᄁ"),
@@ -95,7 +95,7 @@ def link3(inps, descriptive=False, verbose=False):
             out = out.replace(str1, str2)
 
         gloss(verbose, out, inp, rule)
-        outs.add(out)
+        outs.add((idx, out))
     return outs
 
 
@@ -104,7 +104,7 @@ def link4(inps, descriptive=False, verbose=False):
 
     outs = deepcopy(inps)
 
-    for inp in inps:
+    for idx, inp in inps:
         out = inp
         pairs = [ ("ᇂᄋ", "ᄋ"),
                 ("ᆭᄋ", "ᄂ"),
@@ -114,6 +114,6 @@ def link4(inps, descriptive=False, verbose=False):
             out = out.replace(str1, str2)
 
         gloss(verbose, out, inp, rule)
-        outs.add(out)
+        outs.add((idx, out))
     return outs
 

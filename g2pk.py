@@ -41,7 +41,7 @@ class G2p(object):
                 'If you want to install mecab, The command is... pip install python-mecab-ko'
             )
 
-    def idioms(self, string, descriptive=False, verbose=False):
+    def idioms(self, strings_w_idx, descriptive=False, verbose=False):
         '''Process each line in `idioms.txt`
         Each line is delimited by "===",
         and the left string is replaced by the right one.
@@ -53,20 +53,23 @@ class G2p(object):
         지금 엠피쓰리 파일을 다운받고 있어요
         '''
         rule = "from idioms.txt"
-        out = string
+        outs = set()
+        for idx, string in strings_w_idx:
+            out = string
 
-        for line in open(self.idioms_path, 'r', encoding="utf8"):
-            line = line.split("#")[0].strip()
-            if "===" in line:
-                str1, str2 = line.split("===")
-                out = re.sub(str1, str2, out)
-        gloss(verbose, out, string, rule)
+            for line in open(self.idioms_path, 'r', encoding="utf8"):
+                line = line.split("#")[0].strip()
+                if "===" in line:
+                    str1, str2 = line.split("===")
+                    out = re.sub(str1, str2, out)
+            gloss(verbose, out, string, rule)
+            outs.add((idx, out))
 
-        return out
+        return outs
     
 
     #TODO: [srt]을 반환하도록 변경
-    def __call__(self, string, descriptive=False, verbose=False, group_vowels=False, to_syl=True, print_output=False, sampling_num=None) -> [str]:
+    def __call__(self, strings_w_idx, descriptive=False, verbose=False, group_vowels=False, to_syl=True, print_output=False, sampling_num=None):
         '''Main function
         string: input string
         descriptive: boolean.
@@ -94,20 +97,25 @@ class G2p(object):
         -> 나의 친구가 엠피쓰리 파일 세개를 다운받꼬 읻따
         '''
         # 1. idioms
-        string = self.idioms(string, descriptive, verbose)
+        strings_w_idx = self.idioms(strings_w_idx, descriptive, verbose)
 
+        updated_strings_w_idx = set()
         # 2 English to Hangul
-        string = convert_eng(string, self.cmu)
+        updated_strings_w_idx = {(idx, convert_eng(string, self.cmu)) for idx, string in strings_w_idx}
+        strings_w_idx = updated_strings_w_idx  # 업데이트된 set으로 갱신
 
         # 3. annotate
-        string = annotate(string, self.mecab)
+        updated_strings_w_idx = {(idx, annotate(string, self.mecab)) for idx, string in strings_w_idx}
+        strings_w_idx = updated_strings_w_idx  # 업데이트된 set으로 갱신
 
         # 4. Spell out arabic numbers
-        string = convert_num(string)
+        updated_strings_w_idx = {(idx, convert_num(string)) for idx, string in strings_w_idx}
+        strings_w_idx = updated_strings_w_idx
+        # string = convert_num(string)
 
         # 5. decompose
-        inps = set()
-        inps.add(h2j(string))
+        inps = {(idx, h2j(string)) for idx, string in strings_w_idx}
+        # inps.add(h2j(string))
 
         # 6. special
         for func in (jyeo, ye, consonant_ui, josa_ui, vowel_ui, \
@@ -118,20 +126,20 @@ class G2p(object):
 
         
         
-        updated_inps = {re.sub("/[PJEB]", "", inp) for inp in inps}
+        updated_inps = {(idx, re.sub("/[PJEB]", "", inp)) for idx, inp in inps}
         inps = updated_inps  # 업데이트된 set으로 갱신
 
         # 7. regular table: batchim + onset
         for str1, str2, rule_ids, sc in self.table:
             updated_inps = {
-                re.sub(str1, str2, inp)
-                for inp in inps
+                (idx, re.sub(str1, str2, inp))
+                for idx, inp in inps
             }
             # if updated_inps != inps:
             #     print("updated_inps", updated_inps)
             #     print(sc)
             if verbose:
-                for inp in inps:
+                for idx, inp in inps:
                     _inp = re.sub(str1, str2, inp)
                     rule = "\n".join(self.rule2text.get(rule_id, "") for rule_id in rule_ids) if rule_ids else ""
                     gloss(verbose, inp, _inp, rule)
@@ -145,24 +153,30 @@ class G2p(object):
 
 
         if group_vowels:
-            updated_inps = {group(inp) for inp in inps}
+            updated_inps = {(idx, group(inp)) for idx, inp in inps}
             inps.update(updated_inps)
 
         if to_syl:
-            updated_inps = {compose(inp) for inp in inps}
+            updated_inps = {(idx, compose(inp)) for idx, inp in inps}
             inps.update(updated_inps)
 
-        inps = list(inps)
-        
+        inps_dict = {}
+        for idx, inp in inps:
+            if idx not in inps_dict:
+                inps_dict[idx] = []
+            inps_dict[idx].append(inp)
+    
 
         if sampling_num is not None:
-            inps = random.sample(inps, min(sampling_num, len(inps)))
+            # inps = random.sample(inps, min(sampling_num, len(inps)))
+            for idx, inps_list in inps_dict.items():
+                inps_dict[idx] = random.sample(inps_list, min(sampling_num, len(inps_list)))
 
         if print_output:
-            print(inps)
+            print(inps_dict)
 
-        return inps
+        return inps_dict
 
 if __name__ == "__main__":
     g2p = G2p()
-    g2p("나의 친구가 mp3 file 3개를 다운받고 있다", print_output=True, sampling_num=3)
+    g2p([(1,"나의 친구가 mp3 file 3개를 다운받고 있다"), (2, "가는 말이 고와야 오는 말이 곱다")], print_output=True, sampling_num=3)
