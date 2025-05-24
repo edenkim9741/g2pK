@@ -104,20 +104,23 @@ class G2p(object):
         strings_by_idx = self.idioms(strings_by_idx, descriptive, verbose)
 
         # 2 English to Hangul
-        for idx, strings in strings_by_idx.items():
+        temp_strings_by_idx = deepcopy(strings_by_idx)
+        for idx, strings in temp_strings_by_idx.items():
             strings_by_idx[idx] = {convert_eng(string, self.cmu) for string in strings}
         # updated_strings_w_idx = {idx : {convert_eng(string, self.cmu) for idx, string in strings_by_idx}}
         # strings_by_idx = updated_strings_w_idx  # 업데이트된 set으로 갱신
 
         # 3. annotate
-        for idx, strings in strings_by_idx.items():
+        temp_strings_by_idx = deepcopy(strings_by_idx)
+        for idx, strings in temp_strings_by_idx.items():
             strings_by_idx[idx] = {annotate(string, self.mecab) for string in strings}
 
         # updated_strings_w_idx = {(idx, annotate(string, self.mecab)) for idx, string in strings_by_idx}
         # strings_by_idx = updated_strings_w_idx  # 업데이트된 set으로 갱신
 
         # 4. Spell out arabic numbers
-        for idx, strings in strings_by_idx.items():
+        temp_strings_by_idx = deepcopy(strings_by_idx)
+        for idx, strings in temp_strings_by_idx.items():
             strings_by_idx[idx] = {convert_num(string) for string in strings}
 
         # updated_strings_w_idx = {(idx, convert_num(string)) for idx, string in strings_by_idx}
@@ -128,7 +131,8 @@ class G2p(object):
         # inps = {(idx, h2j(string)) for idx, string in strings_by_idx}
         # inps = strings_by_idx
         # inps.add(h2j(string))
-        for idx, strings in strings_by_idx.items():
+        temp_strings_by_idx = deepcopy(strings_by_idx)
+        for idx, strings in temp_strings_by_idx.items():
             strings_by_idx[idx] = {h2j(string) for string in strings}
 
         # 6. special
@@ -141,12 +145,14 @@ class G2p(object):
                 for idx, strings in strings_by_idx.items():
                     strings_by_idx[idx] = set(random.sample(list(strings), min(sampling_num, len(strings))))
         
-        for idx, strings in strings_by_idx.items():
+        temp_strings_by_idx = deepcopy(strings_by_idx)
+        for idx, strings in temp_strings_by_idx.items():
             strings_by_idx[idx] = {re.sub("/[PJEB]", "", string) for string in strings}
 
         # 7. regular table: batchim + onset
+        temp_strings_by_idx = deepcopy(strings_by_idx)
         for str1, str2, rule_ids, sc in self.table:
-            for idx, strings in strings_by_idx.items():
+            for idx, strings in temp_strings_by_idx.items():
                 strings_by_idx[idx].update({re.sub(str1, str2, string) for string in strings})
 
 
@@ -168,16 +174,16 @@ class G2p(object):
                 for idx, strings in strings_by_idx.items():
                     strings_by_idx[idx] = set(random.sample(list(strings), min(sampling_num, len(strings))))
 
-
-
         if group_vowels:
-            for idx, strings in strings_by_idx.items():
+            temp_strings_by_idx = deepcopy(strings_by_idx)
+            for idx, strings in temp_strings_by_idx.items():
                 strings_by_idx[idx] = {group(string) for string in strings}
             # updated_inps = {(idx, group(inp)) for idx, inp in inps}
             # inps.update(updated_inps)
 
         if to_syl:
-            for idx, strings in strings_by_idx.items():
+            temp_strings_by_idx = deepcopy(strings_by_idx)
+            for idx, strings in temp_strings_by_idx.items():
                 strings_by_idx[idx] = {compose(string) for string in strings}
             # updated_inps = {(idx, compose(inp)) for idx, inp in inps}
             # inps.update(updated_inps)
@@ -189,11 +195,15 @@ class G2p(object):
             for idx, strings in strings_by_idx.items():
                 strings_by_idx[idx] = set(random.sample(list(strings), min(sampling_num, len(strings))))
         
-        for idx, strings in strings_by_idx.items():
+        temp_strings_by_idx = deepcopy(strings_by_idx)
+        for idx, strings in temp_strings_by_idx.items():
             strings_by_idx[idx] = list(strings)
 
         if print_output:
             print(strings_by_idx)
+
+        del temp_strings_by_idx
+        
 
         return strings_by_idx
 
