@@ -71,7 +71,6 @@ class G2p(object):
         return outs
     
 
-    #TODO: [srt]을 반환하도록 변경
     def __call__(self, input_string_by_idx, descriptive=False, verbose=False, group_vowels=False, to_syl=True, print_output=False, sampling_num=None):
         '''Main function
         string: input string
@@ -209,4 +208,4 @@ class G2p(object):
 
 if __name__ == "__main__":
     g2p = G2p()
-    g2p({1:{"나의 친구가 mp3 file 3개를 다운받고 있다"}, 2:{"가는 말이 고와야 오는 말이 곱다"}}, print_output=True, sampling_num=3)
+    g2p({1:{"나의 친구가 mp3 file 3개를 다운받고 있다"}, 2:{"가는 말이 고와야 오는 말이 곱다"}}, print_output=True, sampling_num=5)
