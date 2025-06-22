@@ -135,7 +135,7 @@ def reconstruct(string):
 ############## Hangul ##############
 def parse_table():
     '''Parse the main rule table'''
-    lines = open(os.path.dirname(os.path.abspath(__file__)) + '/table.csv', 'r', encoding='utf8').read().splitlines()
+    lines = open(os.path.dirname(os.path.abspath(__file__)) + '/table_updated.csv', 'r', encoding='utf8').read().splitlines()
     onsets = lines[0].split(",")
     table = []
     for line in lines[1:]:
